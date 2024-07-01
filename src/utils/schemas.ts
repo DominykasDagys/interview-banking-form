@@ -1,6 +1,5 @@
 import * as yup from "yup";
 import { PAYER_ACCOUNTS } from "./constants";
-import axios from "axios";
 
 const validateRemainingBalance = (
   value: number,
@@ -10,15 +9,6 @@ const validateRemainingBalance = (
     (account) => account.iban === context.parent.payerAccount
   );
   return selectedAccount ? value <= selectedAccount.balance : true;
-};
-
-const validateIBAN = async (value: string) => {
-  try {
-    const response = await axios.get(`/api/validate?iban=${value}`);
-    return response.data.valid;
-  } catch (error) {
-    return false;
-  }
 };
 
 export const transactionSchema = yup.object().shape({
@@ -32,8 +22,7 @@ export const transactionSchema = yup.object().shape({
   payeeAccount: yup
     .string()
     .required("Required")
-    .trim()
-    .test("valid-iban", "Invalid IBAN", validateIBAN),
+    .trim(),
   purpose: yup.string().required("Required").trim().min(3).max(135),
   payerAccount: yup.string().required("Required"),
   payee: yup.string().required("Required").trim().max(70),

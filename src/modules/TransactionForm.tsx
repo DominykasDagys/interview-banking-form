@@ -15,6 +15,7 @@ const TransactionForm = () => {
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors, isLoading, isSubmitting },
   } = useForm<TransactionDetails>({
     resolver: yupResolver(transactionSchema),
@@ -26,6 +27,20 @@ const TransactionForm = () => {
       payee: "",
     },
   });
+
+  const validateIBAN = async (value: string) => {
+    try {
+      const response = await axios.get(`/api/validate?iban=${value}`);
+      if (!response.data.valid) {
+        setError("payeeAccount", { message: "Invalid IBAN" });
+        return;
+      }
+
+      setError("payeeAccount", {});
+    } catch (error) {
+      setError("payeeAccount", { message: "Invalid IBAN" });
+    }
+  };
 
   const formatAmount = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -74,6 +89,7 @@ const TransactionForm = () => {
           placeholder="Enter payee account number"
           error={errors.payeeAccount?.message}
           required
+          onBlur={(e) => validateIBAN(e.target.value)}
         />
         <InputField
           control={control}
