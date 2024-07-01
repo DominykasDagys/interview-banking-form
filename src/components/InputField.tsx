@@ -36,6 +36,7 @@ const InputField = <T extends FieldValues>({
         return (
           <TextField
             {...field}
+            inputProps={{ "data-testid": `input-${name}` }}
             label={required ? `${label} *` : label}
             fullWidth
             autoComplete="off"

@@ -1,9 +1,9 @@
 import Head from "next/head";
-import { Inter } from "next/font/google";
 import TransactionForm from "../modules/TransactionForm";
 import { Box, Typography } from "@mui/material";
+import AlertBox from "@/components/AlertBox";
 
-export default function Home() {
+export default function MainPage() {
   return (
     <>
       <Head>
@@ -27,6 +27,7 @@ export default function Home() {
           <TransactionForm />
         </Box>
       </main>
+      <AlertBox />
     </>
   );
 }

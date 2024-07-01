@@ -30,6 +30,7 @@ const TransactionForm = () => {
     formState: { errors, isLoading, isSubmitting },
   } = useForm<TransactionDetails>({
     resolver: yupResolver(transactionSchema),
+    mode: "onBlur",
     defaultValues: {
       amount: "",
       payeeAccount: "",
@@ -94,7 +95,7 @@ const TransactionForm = () => {
       return prevAmount.current;
     }
 
-    if (value.endsWith(decimalSeparator)) suffix = decimalSeparator;
+    if (value.endsWith('.') || value.endsWith(',')) suffix = decimalSeparator;
     if (value.endsWith(`${decimalSeparator}0`)) suffix = `${decimalSeparator}0`;
     if (value.endsWith(`${decimalSeparator}00`))
       suffix = `${decimalSeparator}00`;
@@ -171,7 +172,7 @@ const TransactionForm = () => {
           required
         >
           {PAYER_ACCOUNTS.map(({ id, iban, balance }) => (
-            <MenuItem key={id} value={iban}>
+            <MenuItem key={id} data-testid={`account-${iban}`} value={iban}>
               {iban} (Balance: {balance.toLocaleString()})
             </MenuItem>
           ))}
@@ -185,6 +186,7 @@ const TransactionForm = () => {
           required
         />
         <Button
+          data-testid="submit-button"
           type="submit"
           variant="contained"
           disabled={isLoading || isSubmitting}

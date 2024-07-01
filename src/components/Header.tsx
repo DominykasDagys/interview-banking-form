@@ -1,11 +1,9 @@
-import { FC, useState } from "react";
+import { useState } from "react";
 import { useSettingsStore } from "@/store/settings";
 import { Language, LANGUAGES } from "@/types/settings";
 import { AppBar, Box, Button, Menu, MenuItem } from "@mui/material";
 
-interface HeaderProps {}
-
-const Header: FC<HeaderProps> = () => {
+const Header = () => {
   const { language, setLanguage } = useSettingsStore();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
