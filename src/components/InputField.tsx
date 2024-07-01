@@ -7,7 +7,6 @@ interface InputFieldProps<T extends FieldValues> {
   control: Control<T>;
   placeholder?: string;
   required?: boolean;
-  type?: string;
   multiline?: boolean;
   error?: string;
   onChange?: (
@@ -24,7 +23,6 @@ const InputField = <T extends FieldValues>({
   name,
   placeholder,
   required,
-  type,
   multiline,
   error,
   onChange,
@@ -44,7 +42,6 @@ const InputField = <T extends FieldValues>({
             error={Boolean(error)}
             placeholder={placeholder}
             helperText={error}
-            type={type}
             multiline={multiline}
             minRows={multiline ? 3 : undefined}
             onBlur={(e) => {

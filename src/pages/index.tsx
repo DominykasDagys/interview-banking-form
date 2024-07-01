@@ -3,8 +3,6 @@ import { Inter } from "next/font/google";
 import TransactionForm from "../modules/TransactionForm";
 import { Box, Typography } from "@mui/material";
 
-const inter = Inter({ subsets: ["latin"] });
-
 export default function Home() {
   return (
     <>
@@ -18,6 +16,7 @@ export default function Home() {
         <Box
           maxWidth="600px"
           mx="auto"
+          mt="4rem"
           display="flex"
           flexDirection="column"
           px="32px"

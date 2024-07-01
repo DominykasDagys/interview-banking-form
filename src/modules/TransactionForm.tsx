@@ -8,19 +8,30 @@ import SelectField from "@/components/SelectField";
 import { PAYER_ACCOUNTS } from "@/utils/constants";
 import axios from "axios";
 import { useAlertStore } from "@/store/alerts";
+import { useSettingsStore } from "@/store/settings";
+import {
+  convertIntlStringToFloat,
+  getSeparator,
+} from "@/utils/localeFormatting";
+import { useEffect, useRef } from "react";
+import { IntlLocales } from "@/types/settings";
 
 const TransactionForm = () => {
   const { success, error } = useAlertStore();
+  const { language } = useSettingsStore();
+  const prevAmount = useRef("");
+  const prevLanguage = useRef(language);
 
   const {
     control,
     handleSubmit,
     setError,
+    setValue,
     formState: { errors, isLoading, isSubmitting },
   } = useForm<TransactionDetails>({
     resolver: yupResolver(transactionSchema),
     defaultValues: {
-      amount: 0,
+      amount: "",
       payeeAccount: "",
       purpose: "",
       payerAccount: "",
@@ -42,25 +53,77 @@ const TransactionForm = () => {
     }
   };
 
-  const formatAmount = (
+  const handleAmountChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
-    const { value } = e.target;
-    const validValue = /^\d+(\.\d{0,2})?$/.test(value)
-      ? value
-      : value.slice(0, -1);
-    e.target.value = validValue;
+    let { value } = e.target;
+
+    if (value === "") {
+      prevAmount.current = "0";
+      e.target.value = "0";
+      return;
+    }
+
+    // Allow only digits, commas, dots and spaces
+    if (!/^[0-9,\.\s]+$/.test(value)) {
+      e.target.value = prevAmount.current;
+      return;
+    }
+
+    const numberFormat = new Intl.NumberFormat(IntlLocales[language], {
+      style: "decimal",
+      maximumFractionDigits: 2,
+    });
+
+    const formattedValue = formatAmount(value, numberFormat);
+    e.target.value = formattedValue;
+    prevAmount.current = formattedValue;
+  };
+
+  const formatAmount = (value: string, formatter: Intl.NumberFormat) => {
+    let suffix = ""; // Used to append decimal point or zeros following decimal point
+
+    const floatValue = convertIntlStringToFloat(value, language);
+    if (isNaN(floatValue)) {
+      return prevAmount.current;
+    }
+
+    const decimalSeparator = getSeparator(language);
+    const decimalSeparatorCount = value.split(decimalSeparator).length - 1;
+    if (decimalSeparatorCount > 1) {
+      return prevAmount.current;
+    }
+
+    if (value.endsWith(decimalSeparator)) suffix = decimalSeparator;
+    if (value.endsWith(`${decimalSeparator}0`)) suffix = `${decimalSeparator}0`;
+    if (value.endsWith(`${decimalSeparator}00`))
+      suffix = `${decimalSeparator}00`;
+
+    return formatter.format(floatValue) + suffix;
   };
 
   const onSubmit = async (data: TransactionDetails) => {
     try {
-      await axios.post("/api/transaction", data);
+      const amountValue = convertIntlStringToFloat(data.amount, language);
+      if (isNaN(amountValue)) {
+        error("Invalid amount");
+        return;
+      }
+      await axios.post("/api/transaction", { ...data, amount: amountValue });
       success("Transaction successful");
     } catch (err) {
       console.error(err);
       error("Transaction failed");
     }
   };
+
+  useEffect(() => {
+    if (prevLanguage.current !== language) {
+      prevLanguage.current = language;
+      prevAmount.current = "0";
+      setValue("amount", "0");
+    }
+  }, [language, setValue]);
 
   return (
     <>
@@ -79,8 +142,7 @@ const TransactionForm = () => {
           placeholder="Enter amount"
           error={errors.amount?.message}
           required
-          type="number"
-          onChange={formatAmount}
+          onChange={handleAmountChange}
         />
         <InputField
           control={control}

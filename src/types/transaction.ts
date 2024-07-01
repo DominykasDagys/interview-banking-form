@@ -1,5 +1,5 @@
 export interface TransactionDetails {
-  amount: number;
+  amount: string;
   payeeAccount: string;
   purpose: string;
   payerAccount: string;
