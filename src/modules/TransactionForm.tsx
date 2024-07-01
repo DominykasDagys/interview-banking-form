@@ -95,7 +95,7 @@ const TransactionForm = () => {
       return prevAmount.current;
     }
 
-    if (value.endsWith('.') || value.endsWith(',')) suffix = decimalSeparator;
+    if (value.endsWith(".") || value.endsWith(",")) suffix = decimalSeparator;
     if (value.endsWith(`${decimalSeparator}0`)) suffix = `${decimalSeparator}0`;
     if (value.endsWith(`${decimalSeparator}00`))
       suffix = `${decimalSeparator}00`;
@@ -171,11 +171,22 @@ const TransactionForm = () => {
           error={errors.payerAccount?.message}
           required
         >
-          {PAYER_ACCOUNTS.map(({ id, iban, balance }) => (
-            <MenuItem key={id} data-testid={`account-${iban}`} value={iban}>
-              {iban} (Balance: {balance.toLocaleString()})
-            </MenuItem>
-          ))}
+          {PAYER_ACCOUNTS.map(({ id, iban, balance }) => {
+            const numberFormat = new Intl.NumberFormat(IntlLocales[language], {
+              style: "decimal",
+              maximumFractionDigits: 2,
+            });
+            const formattedBalance = formatAmount(
+              balance.toString(),
+              numberFormat
+            );
+
+            return (
+              <MenuItem key={id} data-testid={`account-${iban}`} value={iban}>
+                {iban} (Balance: {formattedBalance})
+              </MenuItem>
+            );
+          })}
         </SelectField>
         <InputField
           control={control}
