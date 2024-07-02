@@ -153,7 +153,7 @@ const TransactionForm = () => {
         <InputField
           control={control}
           name="payeeAccount"
-          label="Payee Account number"
+          label="Payee account number"
           placeholder="Enter payee account number"
           error={errors.payeeAccount?.message}
           required
