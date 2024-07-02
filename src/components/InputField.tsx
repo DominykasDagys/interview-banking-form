@@ -12,9 +12,6 @@ interface InputFieldProps<T extends FieldValues> {
   onChange?: (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => void;
-  onBlur?: (
-    e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement, Element>
-  ) => void;
 }
 
 const InputField = <T extends FieldValues>({
@@ -26,7 +23,6 @@ const InputField = <T extends FieldValues>({
   multiline,
   error,
   onChange,
-  onBlur,
 }: InputFieldProps<T>) => {
   return (
     <Controller
@@ -45,10 +41,6 @@ const InputField = <T extends FieldValues>({
             helperText={error}
             multiline={multiline}
             minRows={multiline ? 3 : undefined}
-            onBlur={(e) => {
-              onBlur?.(e);
-              field.onBlur();
-            }}
             onChange={(e) => {
               onChange?.(e);
               field.onChange(e);

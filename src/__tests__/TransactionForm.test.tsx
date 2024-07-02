@@ -29,7 +29,7 @@ describe("TransactionForm", () => {
 
     await waitFor(() => {
       const errorMessages = screen.getAllByText("Required");
-      expect(errorMessages.length).toBe(5);
+      expect(errorMessages.length).toBe(4);
     });
   });
 
@@ -66,6 +66,7 @@ describe("TransactionForm", () => {
 
   it("submits the form successfully", async () => {
     (axios.post as jest.Mock).mockResolvedValueOnce({ data: {} });
+    (axios.get as jest.Mock).mockResolvedValueOnce({ data: { valid: true } });
 
     render(<MainPage />);
 
@@ -96,6 +97,7 @@ describe("TransactionForm", () => {
     (axios.post as jest.Mock).mockRejectedValueOnce(
       new Error("Transaction failed")
     );
+    (axios.get as jest.Mock).mockResolvedValueOnce({ data: { valid: true } });
 
     render(<MainPage />);
 

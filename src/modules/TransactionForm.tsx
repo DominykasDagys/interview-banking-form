@@ -1,5 +1,5 @@
 import { yupResolver } from "@hookform/resolvers/yup";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { TransactionDetails } from "../types/transaction";
 import InputField from "../components/InputField";
 import { Box, Button, CircularProgress, MenuItem } from "@mui/material";
@@ -25,8 +25,9 @@ const TransactionForm = () => {
   const {
     control,
     handleSubmit,
-    setError,
     setValue,
+    trigger,
+    getValues,
     formState: { errors, isLoading, isSubmitting },
   } = useForm<TransactionDetails>({
     resolver: yupResolver(transactionSchema),
@@ -35,24 +36,17 @@ const TransactionForm = () => {
       amount: "",
       payeeAccount: "",
       purpose: "",
-      payerAccount: "",
+      payerAccount: PAYER_ACCOUNTS[0].iban,
       payee: "",
     },
   });
 
-  const validateIBAN = async (value: string) => {
-    try {
-      const response = await axios.get(`/api/validate?iban=${value}`);
-      if (!response.data.valid) {
-        setError("payeeAccount", { message: "Invalid IBAN" });
-        return;
-      }
+  const payerAccount = useWatch({ control, name: "payerAccount" });
 
-      setError("payeeAccount", {});
-    } catch (error) {
-      setError("payeeAccount", { message: "Invalid IBAN" });
-    }
-  };
+  useEffect(() => {
+    if (getValues("amount") === "") return;
+    trigger("amount")
+  }, [getValues, payerAccount, trigger])
 
   const handleAmountChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -83,22 +77,33 @@ const TransactionForm = () => {
 
   const formatAmount = (value: string, formatter: Intl.NumberFormat) => {
     let suffix = ""; // Used to append decimal point or zeros following decimal point
+    const decimalSeparator = getSeparator(language);
 
-    const floatValue = convertIntlStringToFloat(value, language);
-    if (isNaN(floatValue)) {
-      return prevAmount.current;
+    // If the value ends with a decimal separator, replace it with the correct one
+    if (value.endsWith(".") || value.endsWith(",")) {
+      value = value.slice(0, -1) + decimalSeparator;
+      suffix = decimalSeparator;
     }
 
-    const decimalSeparator = getSeparator(language);
     const decimalSeparatorCount = value.split(decimalSeparator).length - 1;
     if (decimalSeparatorCount > 1) {
       return prevAmount.current;
     }
 
-    if (value.endsWith(".") || value.endsWith(",")) suffix = decimalSeparator;
+    const decimalSeparatorIndex = value.lastIndexOf(decimalSeparator);
+    // Allow only two decimal places
+    if (decimalSeparatorIndex !== -1 && decimalSeparatorIndex < value.length - 3) {
+      return prevAmount.current;
+    }
+
     if (value.endsWith(`${decimalSeparator}0`)) suffix = `${decimalSeparator}0`;
     if (value.endsWith(`${decimalSeparator}00`))
       suffix = `${decimalSeparator}00`;
+
+    const floatValue = convertIntlStringToFloat(value, language);
+    if (isNaN(floatValue)) {
+      return prevAmount.current;
+    }
 
     return formatter.format(floatValue) + suffix;
   };
@@ -152,7 +157,6 @@ const TransactionForm = () => {
           placeholder="Enter payee account number"
           error={errors.payeeAccount?.message}
           required
-          onBlur={(e) => validateIBAN(e.target.value)}
         />
         <InputField
           control={control}

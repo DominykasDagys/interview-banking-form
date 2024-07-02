@@ -5,7 +5,7 @@ const AlertBox = () => {
   const { message, opened, color, closeAlert } = useAlertStore();
 
   return (
-    <Snackbar open={opened} autoHideDuration={6000} onClose={closeAlert}>
+    <Snackbar open={opened} onClose={closeAlert}>
       <Alert
         onClose={closeAlert}
         severity={color}
